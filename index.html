@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jogo do Melhor Anime</title>
+  <link rel="stylesheet" href="estilo.css">
+ 
+</head>
+<body>
+  <h1>Escolha o Melhor Anime!</h1>
+  <div id="game-area" class="round"></div>
+  <p class="winner" id="winner-message"></p>
+
+  <script>
+    const allAnimes = [
+      { name: "Jujutsu Kaisen", img: "https://th.bing.com/th/id/OIP.UxE6oWXSQjtIGSncng-BIgHaLH?rs=1&pid=ImgDetMain" },
+      { name: "DanDanDan", img: "https://th.bing.com/th/id/R.83fb3525b19500d304fac1faa6b50811?rik=vIIYQNsFr6jJjw&pid=ImgRaw&r=0" },
+      { name: "Attack on Titan", img: "https://th.bing.com/th/id/R.cd4c1f6eff5a86e23e2b6d10e2678a22?rik=SKN2McDnOeKmsw&riu=http%3a%2f%2fimages6.fanpop.com%2fimage%2fphotos%2f35500000%2fUntitled-shingeki-no-kyojin-attack-on-titan-35593488-850-1397.jpg&ehk=s07%2bf2afelgVFXdZYgQMAd%2b6Evdi0BtfTFlh0nuM608%3d&risl=&pid=ImgRaw&r=0" },
+      { name: "Nanatsu no Taizai", img: "https://th.bing.com/th/id/R.560e6e58ab9d5aa76d4fdf9617edb755?rik=uE%2fq7%2fxmBSaLfg&pid=ImgRaw&r=0" },
+      { name: "Kaguya-sama: Love is War", img: "https://th.bing.com/th/id/R.5564c23a4e09e323de9b4a80fed89f98?rik=%2f%2bJBE2FxxjyjGw&pid=ImgRaw&r=0" },
+      { name: "Castlevania", img: "https://th.bing.com/th/id/R.8cef96b22d053c8dc0629f976d54ac58?rik=DV%2bknABcOL0cqQ&pid=ImgRaw&r=0" },
+      { name: "Demon Slayer", img: "https://th.bing.com/th/id/OIP.5ZTNAhxLvZ8CfgYAHwBZfwHaKe?rs=1&pid=ImgDetMain" },
+      { name: "Diabolik Lovers", img: "https://th.bing.com/th/id/OIP.idq3i1KfvB_WkVRYBIR_dwHaKg?rs=1&pid=ImgDetMain" },
+      { name: "Spy x Family", img: "https://th.bing.com/th/id/OIP.60TEaB9EKw0sEkNKrsikSQHaKo?rs=1&pid=ImgDetMain" },
+      { name: "My Hero Academia", img: "https://th.bing.com/th/id/R.dc5a8c5bcb61aa4631cb4972b0e96622?rik=Mk53FPbrBgQG6w&riu=http%3a%2f%2fmedia.comicbook.com%2f2018%2f04%2fmy-hero-academia-1100286.jpeg&ehk=rHKBogpIcQPFBYZHzR4U47%2fcwrsj%2f4JTpj2N6AgVxn4%3d&risl=&pid=ImgRaw&r=0" },
+      { name: "Death Note", img: "https://th.bing.com/th/id/R.c161b70a70703539fc4e83d52cf84c96?rik=KEnhzw65UTxLGw&riu=http%3a%2f%2fde.web.img3.acsta.net%2fmedias%2fnmedia%2f18%2f66%2f81%2f62%2f18957147.jpg&ehk=cFd3blTXf%2bPXViYdHopK%2bmSWBf7csJAhWCeL8mUCV6g%3d&risl=&pid=ImgRaw&r=0" },
+      { name: "One Piece", img: "https://th.bing.com/th/id/R.825dc060e925992501906eaa38b0da1b?rik=5Cg8OnaEqY2AtA&pid=ImgRaw&r=0" }
+    ];
+
+    let currentRound = [];
+    let nextRound = [];
+    let usedAnimes = [];
+    let winnerFromPreviousRound = null;
+    let roundNumber = 1;
+
+    const gameArea = document.getElementById('game-area');
+    const winnerMessage = document.getElementById('winner-message');
+
+    function startRound() {
+      nextRound = [];
+      gameArea.innerHTML = '';
+
+      // Selecionar novos animes para cada rodada
+      let availableAnimes = allAnimes.filter(anime => !usedAnimes.includes(anime));
+
+      if (roundNumber === 1) {
+        currentRound = shuffleAnimes(availableAnimes).slice(0, 8);
+      } else if (roundNumber === 2) {
+        currentRound = shuffleAnimes(availableAnimes).slice(0, 3);
+        currentRound.push(winnerFromPreviousRound); // Adicionar o vencedor da rodada anterior
+      } else if (roundNumber === 3) {
+        currentRound = shuffleAnimes(availableAnimes).slice(0, 1);
+        currentRound.push(winnerFromPreviousRound); // Adicionar o vencedor da rodada anterior
+      }
+
+      // Adicionar os animes da rodada atual à lista de usados
+      usedAnimes = [...usedAnimes, ...currentRound];
+
+      for (let i = 0; i < currentRound.length; i += 2) {
+        const animePair = createAnimePair(currentRound[i], currentRound[i + 1]);
+        gameArea.appendChild(animePair);
+      }
+    }
+
+    function createAnimePair(anime1, anime2) {
+      const pairContainer = document.createElement('div');
+      pairContainer.classList.add('anime-pair');
+      pairContainer.style.display = 'flex';
+      pairContainer.style.gap = '20px';
+
+      const animeDiv1 = createAnimeDiv(anime1);
+      const animeDiv2 = createAnimeDiv(anime2);
+
+      animeDiv1.onclick = () => selectAnime(anime1);
+      animeDiv2.onclick = () => selectAnime(anime2);
+
+      pairContainer.appendChild(animeDiv1);
+      pairContainer.appendChild(animeDiv2);
+
+      return pairContainer;
+    }
+
+    function createAnimeDiv(anime) {
+      const animeDiv = document.createElement('div');
+      animeDiv.classList.add('anime');
+      animeDiv.innerHTML = `<img src="${anime.img}" alt="${anime.name}" /><p>${anime.name}</p>`;
+      return animeDiv;
+    }
+
+    function selectAnime(winner) {
+      nextRound.push(winner);
+
+      // Verifica se todos os pares foram escolhidos
+      if (nextRound.length === currentRound.length / 2) {
+        if (nextRound.length === 1) {
+          declareWinner(nextRound[0]);
+        } else {
+          winnerFromPreviousRound = nextRound[0]; // Salva o vencedor para a próxima rodada
+          roundNumber++;
+          startRound();
+        }
+      }
+    }
+
+    function declareWinner(winner) {
+      gameArea.innerHTML = '';
+      winnerMessage.textContent = `O Melhor Anime é: ${winner.name}! 🎉`;
+    }
+
+    function shuffleAnimes(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    // Inicia a primeira rodada
+    startRound();
+  </script>
+</body>
+</html>
